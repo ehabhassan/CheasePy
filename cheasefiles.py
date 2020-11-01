@@ -1302,6 +1302,21 @@ def write_expeq(setParam={},**kwargs):
             elif expeqflag:    nsttp=[1,2]
             elif importedflag: nsttp=[1,7]
 
+    if 'geometry' in setParamKeys:
+       if type(setParam['geometry']) in [int,float,str]:
+            if   type(setParam['geometry'])==float: setParam['geometry'] = int(setParam['geometry'])
+            elif type(setParam['geometry'])==str:   setParam['geometry'] = setParam['geometry'].lower()
+            if   cheaseflag:   geometry=setParam['geometry']
+            elif eqdskflag:    geometry=setParam['geometry']
+            elif expeqflag:    geometry=setParam['geometry']
+            elif importedflag: geometry=setParam['geometry']
+    else:
+            if   cheaseflag:   geometry=0
+            elif eqdskflag:    geometry=1
+            elif expeqflag:    geometry=2
+            elif importedflag: geometry=7
+
+
     if 'boundary' in setParamKeys:
          if   type(setParam['boundary'])==float:
               boundary = int(setParam['boundary'])
@@ -1353,61 +1368,107 @@ def write_expeq(setParam={},**kwargs):
 
     expeq = {}
 
-    if   'imported' in locals() and imported:
-         if   'R0EXP' in setParamKeys:
-              expeq['R0EXP'] = setParam['R0EXP']
+    if   geometry in [7,'imported'] and 'imported' in locals():
+         if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
+         elif 'R0EXP'  in setParam: expeq['R0EXP']  = setParam['R0EXP']
+         else:                      expeq['R0EXP']  = 1.0
+         if   'B0EXP'  in imported: expeq['B0EXP']  = imported['B0EXP']
+         elif 'B0EXP'  in setParam: expeq['B0EXP']  = setParam['B0EXP']
+         else:                      expeq['B0EXP']  = 1.0
+         if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
+         elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
+         else:                      expeq['zgeom']  = 0.0
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
          else:
-              expeq['R0EXP'] = 1.0
-         if   'B0EXP' in setParamKeys:
-              expeq['B0EXP'] = setParam['B0EXP']
-         else:
-              expeq['B0EXP'] = 1.0
-         expeq['nRZmesh'] = npy.size(imported['rbound'])
-         expeq['rbound']  = imported['rbound']/expeq['R0EXP']
-         expeq['zbound']  = imported['zbound']/expeq['R0EXP']
-         expeq['aspect']  = (max(imported['rbound'])-min(imported['rbound']))
-         expeq['aspect'] /= (max(imported['rbound'])+min(imported['rbound']))
-         if   'ZMAX' in setParamKeys:
-              expeq['zgeom'] = setParam['ZMAX']
-         else:
-              expeq['zgeom'] = 0.0
+              expeq['aspect']  = (max(imported['rbound'])-min(imported['rbound']))
+              expeq['aspect'] /= (max(imported['rbound'])+min(imported['rbound']))
 
-    elif 'cheasedata' in locals() and cheasedata:
-         expeq['R0EXP']   = cheasedata['R0EXP']
-         expeq['B0EXP']   = cheasedata['B0EXP']
-         expeq['nRZmesh'] = npy.size(cheasedata['rbound'])
-         expeq['rbound']  = cheasedata['rbound']/expeq['R0EXP']
-         expeq['zbound']  = cheasedata['zbound']/expeq['R0EXP']
-         expeq['aspect']  = (max(cheasedata['rbound'])-min(cheasedata['rbound']))
-         expeq['aspect'] /= (max(cheasedata['rbound'])+min(cheasedata['rbound']))
-         expeq['zgeom']   = npy.mean(cheasedata['zmesh'])/expeq['R0EXP']
+         if   'rbound' in imported and 'zbound' in imported:
+              expeq['nRZmesh'] = npy.size(imported['rbound'])
+              expeq['rbound']  = imported['rbound'][:]
+              expeq['zbound']  = imported['zbound'][:]
+         elif 'eqdskdata' in locals():
+              eqdskParam = {'boundary_type':boundary}
+              rbound,zbound    = find_boundary(eqdskdata,setParam=eqdskParam)
+              expeq['nRZmesh'] = npy.size(rbound)
+              expeq['rbound']  = rbound/expeq['R0EXP']
+              expeq['zbound']  = zbound/expeq['R0EXP']
 
-    elif 'eqdskdata' in locals() and eqdskdata:
-         expeq['R0EXP'] = abs(eqdskdata['RCTR'])
-         expeq['B0EXP'] = abs(eqdskdata['BCTR'])
-         eqdskParam = {'boundary_type':boundary}
-         rbound,zbound    = find_boundary(eqdskdata,setParam=eqdskParam)
-         expeq['nRZmesh'] = npy.size(rbound)
-         expeq['rbound']  = rbound/expeq['R0EXP']
-         expeq['zbound']  = zbound/expeq['R0EXP']
-         expeq['aspect']  = (max(rbound)-min(rbound))
-         expeq['aspect'] /= (max(rbound)+min(rbound))
-         expeq['zgeom']   = eqdskdata['ZMAX']/expeq['R0EXP']
+    elif geometry in [0,'chease'] and 'cheasedata' in locals():
+         if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
+         elif 'R0EXP'  in setParam: expeq['R0EXP']  = setParam['R0EXP']
+         else:                      expeq['R0EXP']  = cheasedata['R0EXP']
+         if   'B0EXP'  in imported: expeq['B0EXP']  = imported['B0EXP']
+         elif 'B0EXP'  in setParam: expeq['B0EXP']  = setParam['B0EXP']
+         else:                      expeq['B0EXP']  = cheasedata['B0EXP']
+         if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
+         elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
+         else:                      expeq['zgeom']  = npy.mean(cheasedata['zmesh'])/expeq['R0EXP']
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:
+              expeq['aspect']  = (max(cheasedata['rbound'])-min(cheasedata['rbound']))
+              expeq['aspect'] /= (max(cheasedata['rbound'])+min(cheasedata['rbound']))
 
-    elif 'expeqdata' in locals() and expeqdata:
-         if   'R0EXP' in setParamKeys:
-              expeq['R0EXP'] = setParam['R0EXP']
+         if 'rbound' in imported and 'zbound' in imported:
+            expeq['nRZmesh'] = npy.size(imported['rbound'])
+            expeq['rbound']  = imported['rbound'][:]
+            expeq['zbound']  = imported['zbound'][:]
          else:
-              expeq['R0EXP'] = 1.0
-         if   'B0EXP' in setParamKeys:
-              expeq['B0EXP'] = setParam['B0EXP']
+            expeq['nRZmesh'] = npy.size(cheasedata['rbound'])
+            expeq['rbound']  = cheasedata['rbound']/expeq['R0EXP']
+            expeq['zbound']  = cheasedata['zbound']/expeq['R0EXP']
+
+    elif geometry in [2,'expeq'] and 'expeqdata' in locals():
+         if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
+         elif 'R0EXP'  in setParam: expeq['R0EXP']  = setParam['R0EXP']
+         else:                      expeq['R0EXP']  = 1.0
+         if   'B0EXP'  in imported: expeq['B0EXP']  = imported['B0EXP']
+         elif 'B0EXP'  in setParam: expeq['B0EXP']  = setParam['B0EXP']
+         else:                      expeq['B0EXP']  = 1.0
+         if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
+         elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
+         else:                      expeq['zgeom']  = expeqdata['aspect']
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:                                        expeqdata['zgeom']
+
+         if 'rbound' in imported and 'zbound' in imported:
+            expeq['nRZmesh'] = npy.size(imported['rbound'])
+            expeq['rbound']  = imported['rbound'][:]
+            expeq['zbound']  = imported['zbound'][:]
          else:
-              expeq['B0EXP'] = 1.0
-         expeq['nRZmesh'] = npy.size(expeqdata['rbound'])
-         expeq['rbound']  = expeqdata['rbound'][:]
-         expeq['zbound']  = expeqdata['zbound'][:]
-         expeq['aspect']  = expeqdata['aspect']
-         expeq['zgeom']   = expeqdata['zgeom']
+            expeq['nRZmesh'] = npy.size(expeqdata['rbound'])
+            expeq['rbound']  = expeqdata['rbound'][:]
+            expeq['zbound']  = expeqdata['zbound'][:]
+
+    elif geometry in [1,'eqdsk'] or 'eqdskdata' in locals():
+         if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
+         elif 'R0EXP'  in setParam: expeq['R0EXP']  = setParam['R0EXP']
+         else:                      expeq['R0EXP']  = abs(eqdskdata['RCTR'])
+         if   'B0EXP'  in imported: expeq['B0EXP']  = imported['B0EXP']
+         elif 'B0EXP'  in setParam: expeq['B0EXP']  = setParam['B0EXP']
+         else:                      expeq['B0EXP']  = abs(eqdskdata['BCTR'])
+         if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
+         elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
+         else:                      expeq['zgeom']  = eqdskdata['ZMAX']/expeq['R0EXP']
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:
+              expeq['aspect']  = (max(rbound)-min(rbound))
+              expeq['aspect'] /= (max(rbound)+min(rbound))
+
+         if 'rbound' in imported and 'zbound' in imported:
+            expeq['nRZmesh'] = npy.size(imported['rbound'])
+            expeq['rbound']  = imported['rbound'][:]
+            expeq['zbound']  = imported['zbound'][:]
+         else:
+            eqdskParam = {'boundary_type':boundary}
+            rbound,zbound    = find_boundary(eqdskdata,setParam=eqdskParam)
+            expeq['nRZmesh'] = npy.size(rbound)
+            expeq['rbound']  = rbound/expeq['R0EXP']
+            expeq['zbound']  = zbound/expeq['R0EXP']
 
     if   nrhotype[0] in [0,'rhopsi','rhopsin']:
          rhopsiflag = True
