@@ -13,6 +13,11 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 
+if   sys.version_info.major == 3:
+     PYTHON3 = True; PYTHON2 = False
+elif sys.version_info.major == 2:
+     PYTHON2 = True; PYTHON3 = False
+
 def fit_profile(rhotor,in_profile,method='stefanikova',setParam={},fitParam={},fitBounds={}):
     global profile
 
@@ -92,17 +97,17 @@ def fit_profile(rhotor,in_profile,method='stefanikova',setParam={},fitParam={},f
     fit_bounds=(lw_bound,up_bound)
 
 
-    if 'Normalize' in setParam:
-       Normalize = setParam['Normalize']
+    if 'norm' in setParam:
+       norm = setParam['norm']
     else:
-       Normalize = False
+       norm = False
 
     if 'fit_plot' in setParam:
        fit_plot = setParam['fit_plot']
     else:
        fit_plot = True
 
-    if Normalize:
+    if norm:
        fmin    = npy.min(in_profile)
        fmax    = npy.max(in_profile)
     else:
@@ -364,11 +369,11 @@ def get_iter_profiles(iterdbfpath,eqdskfpath,setparam={},plotParam={}):
 
     iter_profiles = {}
 
-    setparam = {'Normalize':False,'profiledata':iterdbdata,'fit_plot':False}
+    setparam = {'norm':False,'profiledata':iterdbdata,'fit_plot':False}
     pres_fit_param = fit_profile(iterdbdata['rhotor'],iterdbdata['pressure'],method='groebner',setParam=setparam)
 
     fitparam = {}
-    setparam = {'Normalize':True,'profiledata':iterdbdata,'fit_plot':False}
+    setparam = {'norm':True,'profiledata':iterdbdata,'fit_plot':False}
     dens_fit_param = fit_profile(iterdbdata['rhotor'],iterdbdata['ne'],method='groebner',setParam=setparam,fitParam=fitparam,fitBounds={})
     fitparam=[]
     fitparam.append(dens_fit_param['alpha'])
@@ -393,7 +398,7 @@ def get_iter_profiles(iterdbfpath,eqdskfpath,setparam={},plotParam={}):
        ax1.set_xlabel('$\\rho_{\\phi}$')
 
     fitparam = {}
-    setparam = {'Normalize':True,'profiledata':iterdbdata,'fit_plot':False}
+    setparam = {'norm':True,'profiledata':iterdbdata,'fit_plot':False}
     temp_fit_param = fit_profile(iterdbdata['rhotor'],iterdbdata['Te'],method='stefanikova',setParam=setparam,fitParam=fitparam,fitBounds={})
     fitparam=[]
     fitparam.append(temp_fit_param['alpha'])
@@ -422,7 +427,7 @@ def get_iter_profiles(iterdbfpath,eqdskfpath,setparam={},plotParam={}):
        ax2.legend()
 
     fitparam = {'ped_mid':pres_fit_param['ped_mid']}
-    setparam = {'Normalize':True,'profiledata':iterdbdata,'fit_plot':False}
+    setparam = {'norm':True,'profiledata':iterdbdata,'fit_plot':False}
     dens_fit_param = fit_profile(iterdbdata['rhotor'],iterdbdata['ni'],method='groebner',setParam=setparam,fitParam=fitparam,fitBounds={})
     fitparam=[]
     fitparam.append(dens_fit_param['alpha'])
@@ -448,7 +453,7 @@ def get_iter_profiles(iterdbfpath,eqdskfpath,setparam={},plotParam={}):
        ax3.legend()
 
     fitparam = {'cor_height':iterdbdata['Ti'][-1],'ped_mid':pres_fit_param['ped_mid']}
-    setparam = {'Normalize':True,'profiledata':iterdbdata,'fit_plot':False}
+    setparam = {'norm':True,'profiledata':iterdbdata,'fit_plot':False}
     temp_fit_param = fit_profile(iterdbdata['rhotor'],iterdbdata['Ti'],method='groebner',setParam=setparam,fitParam=fitparam,fitBounds={})
     fitparam=[]
     fitparam.append(temp_fit_param['alpha'])
