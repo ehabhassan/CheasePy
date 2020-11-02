@@ -13,27 +13,6 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-import time
-import h5py
-import traceback
-import subprocess
-
-import numpy             as npy
-import matplotlib.pyplot as plt
-
-from glob import glob
-from efittools import read_efit_file
-from efittools import psi2phi,phi2psi
-from efittools import read_iterdb_file
-from efittools import magsurf_solvflines
-from efittools import read_profiles_file
-from scipy.integrate   import trapz,simps,quad
-from scipy.interpolate import splrep,splev
-from scipy.interpolate import interp1d,interp2d
-from scipy.interpolate import CubicSpline,RectBivariateSpline
-from matplotlib.backends.backend_pdf import PdfPages
-
-
 if   sys.version_info.major == 3:
      PYTHON3 = True; PYTHON2 = False
 elif sys.version_info.major == 2:
