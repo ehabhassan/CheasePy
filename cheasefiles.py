@@ -1170,6 +1170,7 @@ def read_expeq(fpath,setParam={},**kwargs):
 
     return EXPEQdata
 
+
 def write_expeq(setParam={},**kwargs):
     '''
     nrhomesh=[rho_type(0:rhopsi,1:rhotor),rho_src(0:chease,1:eqdsk)]
@@ -1227,17 +1228,17 @@ def write_expeq(setParam={},**kwargs):
     if not (cheaseflag or expeqflag  or eqdskflag or exptnzflag or profilesflag or iterdbflag or importedflag):
        raise IOError('FATAL: NO VALID INPUT PROFILES AVAILABLE. EXIT!')
 
-    if  PYTHON3:
-        setParamKeys = list(setParam.keys())
-   elif PYTHON2:
-        setParamKeys = setParam.keys()
+    if   PYTHON3:
+         setParamKeys = list(setParam.keys())
+    elif PYTHON2:
+         setParamKeys = setParam.keys()
 
-    if 'outfile' in setParamKeys:
+    if 'outfile' in setParam:
         outfile = setParam['outfile']
     else:
         outfile = True
 
-    if 'nrhomesh' in setParamKeys:
+    if 'nrhomesh' in setParam:
        if   type(setParam['nrhomesh'])==list:
             if   type(setParam['nrhomesh'][0])==float: setParam['nrhomesh'][0] = int(setParam['nrhomesh'][0])
             elif type(setParam['nrhomesh'][0])==str:   setParam['nrhomesh'][0] = setParam['nrhomesh'][0].lower()
@@ -1256,7 +1257,7 @@ def write_expeq(setParam={},**kwargs):
             elif eqdskflag:    nrhotype=[0,1]
             elif importedflag: nrhotype=[0,7]
 
-    if 'nppfun' in setParamKeys:
+    if 'nppfun' in setParam:
        if   type(setParam['nppfun'])==list:
             if   type(setParam['nppfun'][0])==float: setParam['nppfun'][0] = int(setParam['nppfun'][0])
             elif type(setParam['nppfun'][0])==str:   setParam['nppfun'][0] = setParam['nppfun'][0].lower()
@@ -1282,7 +1283,7 @@ def write_expeq(setParam={},**kwargs):
             elif iterdbflag:   nppfun=[4,5]
             elif importedflag: nppfun=[4,7]
 
-    if 'nsttp' in setParamKeys:
+    if 'nsttp' in setParam:
        if   type(setParam['nsttp'])==list:
             if   type(setParam['nsttp'][0])==float: setParam['nsttp'][0] = int(setParam['nsttp'][0])
             elif type(setParam['nsttp'][0])==str:   setParam['nsttp'][0] = setParam['nsttp'][0].lower()
@@ -1302,7 +1303,7 @@ def write_expeq(setParam={},**kwargs):
             elif expeqflag:    nsttp=[1,2]
             elif importedflag: nsttp=[1,7]
 
-    if 'geometry' in setParamKeys:
+    if 'geometry' in setParam:
        if type(setParam['geometry']) in [int,float,str]:
             if   type(setParam['geometry'])==float: setParam['geometry'] = int(setParam['geometry'])
             elif type(setParam['geometry'])==str:   setParam['geometry'] = setParam['geometry'].lower()
@@ -1317,7 +1318,7 @@ def write_expeq(setParam={},**kwargs):
             elif importedflag: geometry=7
 
 
-    if 'boundary' in setParamKeys:
+    if 'boundary' in setParam:
          if   type(setParam['boundary'])==float:
               boundary = int(setParam['boundary'])
          elif type(setParam['boundary'])==str:
@@ -2204,10 +2205,10 @@ def write_exptnz(setParam={},**kwargs):
     if not (cheaseflag or exptnzflag or profilesflag or iterdbflag or importedflag):
        raise IOError('FATAL: NO VALID INPUT PROFILES AVAILABLE. EXIT!')
 
-    if  PYTHON3:
-        setParamKeys = list(setParam.keys())
-   elif PYTHON2:
-        setParamKeys = setParam.keys()
+    if   PYTHON3:
+         setParamKeys = list(setParam.keys())
+    elif PYTHON2:
+         setParamKeys = setParam.keys()
 
     if 'outfile' in setParamKeys:
         outfile = setParam['outfile']
@@ -2936,12 +2937,12 @@ def read_iterdb(fpath,setParam={},**kwargs):
          else:
             ITERDBdata['Vrot'] = npy.zeros(nrhosize)
     else:
-         ITERDBdata['ne']      = mathools.interp(rhotors['NE'],profiles['NE'],rhotorNE)
-         ITERDBdata['Te']      = mathools.interp(rhotors['TE'],profiles['TE'],rhotorNE)
-         ITERDBdata['ni']      = mathools.interp(rhotors['NM1'],profiles['NM1'],rhotorNE)
-         ITERDBdata['Ti']      = mathools.interp(rhotors['TI'],profiles['TI'],rhotorNE)
+         ITERDBdata['ne']      = mathtools.interp(rhotors['NE'],profiles['NE'],rhotorNE)
+         ITERDBdata['Te']      = mathtools.interp(rhotors['TE'],profiles['TE'],rhotorNE)
+         ITERDBdata['ni']      = mathtools.interp(rhotors['NM1'],profiles['NM1'],rhotorNE)
+         ITERDBdata['Ti']      = mathtools.interp(rhotors['TI'],profiles['TI'],rhotorNE)
          if 'NM2' in profiles: 
-            ITERDBdata['nz']   = mathools.interp(rhotors['NM2'],profiles['NM2'],rhotorNE)
+            ITERDBdata['nz']   = mathtools.interp(rhotors['NM2'],profiles['NM2'],rhotorNE)
          else:
             ITERDBdata['nz']   = npy.zeros(nrhosize)
          if 'VROT' in profiles :
