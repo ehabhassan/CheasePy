@@ -333,7 +333,7 @@ def plot_chease(cheasefpath,skipfigs=1,**kwargs):
         if eqdsklist:
            EQDSKdata    = cheasefiles.read_eqdsk(eqdsklist[0])
         if profileslist:
-           PROFILESdata = cheasefiles.read_profiles(profilelist[0])
+           PROFILESdata = cheasefiles.read_profiles(profileslist[0])
 
         EDENfig = plt.figure("Electron Density")
         plt.plot(CHEASEdata['rhopsi'],CHEASEdata['ne'],linestyle='-',label='CHESAE-'+caselabel[-6:-3])
