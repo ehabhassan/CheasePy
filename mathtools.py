@@ -11,6 +11,11 @@ from scipy.interpolate import splrep,splev
 from scipy.interpolate import interp1d,interp2d
 from scipy.interpolate import CubicSpline,RectBivariateSpline
 
+if   sys.version_info.major == 3:
+     PYTHON3 = True; PYTHON2 = False
+elif sys.version_info.major == 2:
+     PYTHON2 = True; PYTHON3 = False
+
 def bisection(fx,xmin,xmax,root=0.0,Nmax=100,eps=1.0e-16):
     for it in range(Nmax):
         x = (xmax+xmin)/2.0
