@@ -2210,12 +2210,12 @@ def write_exptnz(setParam={},**kwargs):
     elif PYTHON2:
          setParamKeys = setParam.keys()
 
-    if 'outfile' in setParamKeys:
+    if 'outfile' in setParam:
         outfile = setParam['outfile']
     else:
         outfile = True
 
-    if 'nrhomesh' in setParamKeys:
+    if 'nrhomesh' in setParam:
        if   type(setParam['nrhomesh'])==list: 
             if   type(setParam['nrhomesh'][0])==float: setParam['nrhomesh'][0] = int(setParam['nrhomesh'][0])
             elif type(setParam['nrhomesh'][0])==str:   setParam['nrhomesh'][0] = setParam['nrhomesh'][0].lower()
@@ -2232,7 +2232,7 @@ def write_exptnz(setParam={},**kwargs):
             elif eqdskflag:    nrhotype=[0,1]
             elif importedflag: nrhotype=[0,7]
 
-    if 'eprofile' in setParamKeys: 
+    if 'eprofile' in setParam: 
             if   type(setParam['eprofile'])==float: setParam['eprofile'] = int(setParam['eprofile'])
             elif type(setParam['eprofile'])==str:   setParam['eprofile'] = setParam['eprofile'].lower()
             eprofile= setParam['eprofile']
@@ -2243,7 +2243,7 @@ def write_exptnz(setParam={},**kwargs):
             elif iterdbflag:   eprofile=5
             elif importedflag: eprofile=7
 
-    if 'iprofile' in setParamKeys:
+    if 'iprofile' in setParam:
             if   type(setParam['iprofile'])==float: setParam['iprofile'] = int(setParam['iprofile'])
             elif type(setParam['iprofile'])==str:   setParam['iprofile'] = setParam['iprofile'].lower()
             iprofile= setParam['iprofile']
