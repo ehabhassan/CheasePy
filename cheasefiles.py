@@ -1227,17 +1227,17 @@ def write_expeq(setParam={},**kwargs):
     if not (cheaseflag or expeqflag  or eqdskflag or exptnzflag or profilesflag or iterdbflag or importedflag):
        raise IOError('FATAL: NO VALID INPUT PROFILES AVAILABLE. EXIT!')
 
-    if  PYTHON3:
-        setParamKeys = list(setParam.keys())
-   elif PYTHON2:
-        setParamKeys = setParam.keys()
+    if   PYTHON3:
+         setParamKeys = list(setParam.keys())
+    elif PYTHON2:
+         setParamKeys = setParam.keys()
 
-    if 'outfile' in setParamKeys:
+    if 'outfile' in setParam:
         outfile = setParam['outfile']
     else:
         outfile = True
 
-    if 'nrhomesh' in setParamKeys:
+    if 'nrhomesh' in setParam:
        if   type(setParam['nrhomesh'])==list:
             if   type(setParam['nrhomesh'][0])==float: setParam['nrhomesh'][0] = int(setParam['nrhomesh'][0])
             elif type(setParam['nrhomesh'][0])==str:   setParam['nrhomesh'][0] = setParam['nrhomesh'][0].lower()
@@ -1256,7 +1256,7 @@ def write_expeq(setParam={},**kwargs):
             elif eqdskflag:    nrhotype=[0,1]
             elif importedflag: nrhotype=[0,7]
 
-    if 'nppfun' in setParamKeys:
+    if 'nppfun' in setParam:
        if   type(setParam['nppfun'])==list:
             if   type(setParam['nppfun'][0])==float: setParam['nppfun'][0] = int(setParam['nppfun'][0])
             elif type(setParam['nppfun'][0])==str:   setParam['nppfun'][0] = setParam['nppfun'][0].lower()
@@ -1282,7 +1282,7 @@ def write_expeq(setParam={},**kwargs):
             elif iterdbflag:   nppfun=[4,5]
             elif importedflag: nppfun=[4,7]
 
-    if 'nsttp' in setParamKeys:
+    if 'nsttp' in setParam:
        if   type(setParam['nsttp'])==list:
             if   type(setParam['nsttp'][0])==float: setParam['nsttp'][0] = int(setParam['nsttp'][0])
             elif type(setParam['nsttp'][0])==str:   setParam['nsttp'][0] = setParam['nsttp'][0].lower()
@@ -2204,17 +2204,17 @@ def write_exptnz(setParam={},**kwargs):
     if not (cheaseflag or exptnzflag or profilesflag or iterdbflag or importedflag):
        raise IOError('FATAL: NO VALID INPUT PROFILES AVAILABLE. EXIT!')
 
-    if  PYTHON3:
-        setParamKeys = list(setParam.keys())
-   elif PYTHON2:
-        setParamKeys = setParam.keys()
+    if   PYTHON3:
+         setParamKeys = list(setParam.keys())
+    elif PYTHON2:
+         setParamKeys = setParam.keys()
 
-    if 'outfile' in setParamKeys:
+    if 'outfile' in setParam:
         outfile = setParam['outfile']
     else:
         outfile = True
 
-    if 'nrhomesh' in setParamKeys:
+    if 'nrhomesh' in setParam:
        if   type(setParam['nrhomesh'])==list: 
             if   type(setParam['nrhomesh'][0])==float: setParam['nrhomesh'][0] = int(setParam['nrhomesh'][0])
             elif type(setParam['nrhomesh'][0])==str:   setParam['nrhomesh'][0] = setParam['nrhomesh'][0].lower()
@@ -2231,7 +2231,7 @@ def write_exptnz(setParam={},**kwargs):
             elif eqdskflag:    nrhotype=[0,1]
             elif importedflag: nrhotype=[0,7]
 
-    if 'eprofile' in setParamKeys: 
+    if 'eprofile' in setParam: 
             if   type(setParam['eprofile'])==float: setParam['eprofile'] = int(setParam['eprofile'])
             elif type(setParam['eprofile'])==str:   setParam['eprofile'] = setParam['eprofile'].lower()
             eprofile= setParam['eprofile']
@@ -2242,7 +2242,7 @@ def write_exptnz(setParam={},**kwargs):
             elif iterdbflag:   eprofile=5
             elif importedflag: eprofile=7
 
-    if 'iprofile' in setParamKeys:
+    if 'iprofile' in setParam:
             if   type(setParam['iprofile'])==float: setParam['iprofile'] = int(setParam['iprofile'])
             elif type(setParam['iprofile'])==str:   setParam['iprofile'] = setParam['iprofile'].lower()
             iprofile= setParam['iprofile']

@@ -102,10 +102,11 @@ def fit_profile(rhotor,in_profile,method='stefanikova',setParam={},fitParam={},f
     else:
        norm = False
 
-    if 'fit_plot' in setParam:
-       fit_plot = setParam['fit_plot']
+    if 'plot' in setParam:
+       fit_plot = setParam['plot']
     else:
        fit_plot = True
+    print(fit_plot)
 
     if norm:
        fmin    = npy.min(in_profile)
@@ -145,10 +146,11 @@ def fit_profile(rhotor,in_profile,method='stefanikova',setParam={},fitParam={},f
          else:                            fit_parameters['cor_height'] = (fmax-fmin)*popt[7]+fmin
 
          if fit_plot:
+            print('Plotting Stefanikova Profile.')
             plt.plot(rhotor,stefanikova_fit(rhotor,*popt),'r',label='CRVFIT')
             plt.plot(rhotor,profile,'b--',label='EXP')
             plt.legend()
-            plt.show()
+            plt.savefig(fname="sfitting.png",dpi=100)
             plt.close()
 
     elif method.lower()=='groebner':
@@ -171,10 +173,11 @@ def fit_profile(rhotor,in_profile,method='stefanikova',setParam={},fitParam={},f
          else:                             fit_parameters['ped_mid']    = popt[4]
 
          if fit_plot:
+            print('Plotting Groebner Profile.')
             plt.plot(rhotor,groebner_fit(rhotor,*popt),'r',label='CRVFIT')
             plt.plot(rhotor,profile,'b--',label='EXP')
             plt.legend()
-            plt.show()
+            plt.savefig(fname="gfitting.png",dpi=100)
             plt.close()
 
     if 'set_alpha'      in globals(): del set_alpha
