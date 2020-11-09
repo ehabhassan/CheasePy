@@ -3,6 +3,7 @@
 
 import os
 import sys
+import f90nml
 import mathtools
 import cheasefiles
 import numpy as npy
@@ -150,6 +151,27 @@ def create_namelist(setParam={}):
     wfh.close()
 
     return setParam
+
+
+def read_namelist(nmlfpath):
+    exnml = f90nml.read(nmlfpath)
+    if 'sources'  in exnml:
+       srcVals = dict(exnml['sources'])
+    else:
+       srcVals = {}
+    if 'namelist' in exnml:
+       exNmlVals = dict(exnml['namelist'])
+       nmlVals = {}
+       for ikey in exNmlVals:
+           nmlVals[ikey.upper()] = exNmlVals[ikey]
+    else:
+       nmlVals = {}
+    if 'imported' in exnml:
+       impVals = dict(exnml['imported'])
+    else:
+       impVals = {}
+
+    return srcVals,nmlVals,impVals
 
 
 def find_boundary(eqdsk='',setParam={}):
@@ -534,7 +556,7 @@ def remove_output_files():
     if glob('./chease_namelist*'): os.system('rm chease_namelist*')
     return 1
 
-def init_chease_inputs(srcVals={},namelistVals={},importedVals={}):
+def init_chease_inputs(srcVals={},namelistVals={},importedVals={},namelistfpath=''):
     '''
     "boundary_src  = n" where n in geometry options
     Boundary Surface options:
@@ -565,6 +587,31 @@ def init_chease_inputs(srcVals={},namelistVals={},importedVals={}):
     n = 5 or 'iterdb'
     n = 7 or 'imported'
     '''
+
+    if os.path.isfile(namelistfpath):
+       exSrcVals,exNmlVals,exImpVals = read_namelist(namelistfpath)
+    else:
+       exSrcVals = {}
+       exNmlVals = {}
+       exImpVals = {}
+
+    if exSrcVals:
+       for ikey in exSrcVals:
+           if ikey not in srcVals:
+              srcVals[ikey] = exSrcVals[ikey]
+    if exNmlVals:
+       for ikey in exNmlVals:
+           if ikey not in namelistVals:
+              namelistVals[ikey] = exNmlVals[ikey]
+    if exImpVals:
+       for ikey in exImpVals:
+           if ikey not in importedVals:
+              importedVals[ikey] = exImpVals[ikey]
+
+    if not srcVals and not namelistVals:
+          print('No Inputs Available. EXIT!')
+          sys.exit()
+
 
     if 'boundary_src'  in srcVals: boundary_src  = srcVals['boundary_src']
     else:                          boundary_src  = 0
