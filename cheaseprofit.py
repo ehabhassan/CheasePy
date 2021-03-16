@@ -1,3 +1,7 @@
+"""
+PYTHON package to interpolate the profiles using different models (e.g. Groebner) and find the Tokamak pedestal characteristics, estimate the last closed magnetic surface, etc. This PYTHON package works with PYTHON 2.x and PYTHON 3.x.
+"""
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 

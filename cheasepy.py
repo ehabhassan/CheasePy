@@ -174,47 +174,6 @@ def read_namelist(nmlfpath):
     return srcVals,nmlVals,impVals
 
 
-def find_boundary(eqdsk='',setParam={}):
-    if eqdsk:
-       eqdskflag  = True
-       if   type(eqdsk)==str and os.path.isfile(eqdsk.strip()):
-                               eqdskdata = cheasefiles.read_eqdsk(fpath=eqdsk.strip())
-       elif type(eqdsk)==dict: eqdskdata = eqdsk.copy()
-       else:
-            eqdskflag = False
-    else:
-       eqdskflag = False
-
-    if not eqdskflag: raise IOError('FATAL: EQDSK FILE IS NOT PROVIDED. EXIT!')
-
-    asisflag = False; interpflag = False
-    if 'boundary_src' in setParam:
-       if   setParam['boundary_src'] in [0,'asis']:   asisflag   = True
-       elif setParam['boundary_src'] in [1,'interp']: interpflag = True
-       else:                                           asisflag   = True
-
-    if   asisflag:
-         rbound = eqdskdata['rbound']
-         zbound = eqdskdata['zbound']
-    elif interpflag:
-       rbndtst = int(eqdskdata['RLEN']/(max(eqdskdata['rbound'])-abs(min(eqdskdata['rbound']))))
-       zbndtst = int(eqdskdata['ZLEN']/(max(eqdskdata['zbound'])+abs(min(eqdskdata['zbound']))))
-       if  rbndtst==1 and zbndtst==1:
-           rbound,zbound = magsurf_solvflines(eqdskdata=eqdskdata,psi=0.999,eps=1.0e-16)
-       else:
-           rbound=npy.zeros(2*len(eqdskdata['rbound'])-1)
-           zbound=npy.zeros(2*len(eqdskdata['zbound'])-1)
-           rbound[0] = eqdskdata['rbound'][0]
-           zbound[0] = eqdskdata['zbound'][0]
-           for i in range(1,len(eqdskdata['rbound'])):
-               rbound[i]  = eqdskdata['rbound'][i]
-               rbound[-i] = eqdskdata['rbound'][i]
-               zbound[i]  = eqdskdata['zbound'][i]
-               zbound[-i] =-eqdskdata['zbound'][i]
-
-    return rbound,zbound
-
-
 def plot_chease(cheasefpath,skipfigs=1,**kwargs):
     if   os.path.isdir(cheasefpath):
          srhpath = os.path.join(cheasefpath,'chease*.h5')

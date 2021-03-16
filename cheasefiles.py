@@ -1,3 +1,15 @@
+"""
+PYTHON package to read and write several known types of files in Fusion Community, such as:
+1. READ/WRITE CSV
+2. READ/WRITE EQDSK
+3. READ/WRITE EXPEQ
+4. READ/WRITE ITERDB
+5. READ/WRITE EXPTNZ
+6. READ/WRITE CHEASE
+7. READ/WRITE PROFILES
+This PYTHON package works with PYTHON 2.x and PYTHON 3.x.
+"""
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -15,6 +27,7 @@ from scipy.interpolate import interp1d,interp2d
 from scipy.interpolate import CubicSpline,RectBivariateSpline
 
 
+
 if   sys.version_info.major == 3:
      PYTHON3 = True; PYTHON2 = False
 elif sys.version_info.major == 2:
@@ -24,6 +37,10 @@ mu0 = 4.0e-7*npy.pi
 
 
 def read_csv(csvfn):
+    """
+    Taking the path for a CSV file "csvfn" to return its contents in a PYTHON dictionary format.
+    The keys in the PYTHON dictionary are the headers in the CSV file.
+    """
     with open(csvfn, mode='r') as csvfid:
          csvdata = csv.DictReader(csvfid)
          recordid = 0
@@ -43,6 +60,11 @@ def read_csv(csvfn):
     return csvdict
 
 def write_csv(csvfn,csvdict):
+    """
+    Taking the path to a CSV file "csvfn" and a PYTHON dictionary data structure to
+    create a CSV file in the provided path using the data provided in the PYTHON dictionary.
+    The keys in the PYTHON dictionary are used as the headers in the CSV file.
+    """
     headers   = sorted(csvdict.keys())
     nheaders  = npy.size(headers)
     nrows     = npy.size(csvdict[headers[0]])
@@ -65,7 +87,80 @@ def write_csv(csvfn,csvdict):
     return 1
 
 
+def find_boundary(eqdsk='',setParam={}):
+    if eqdsk:
+       eqdskflag  = True
+       if   type(eqdsk)==str and os.path.isfile(eqdsk.strip()):
+                               eqdskdata = cheasefiles.read_eqdsk(fpath=eqdsk.strip())
+       elif type(eqdsk)==dict: eqdskdata = eqdsk.copy()
+       else:
+            eqdskflag = False
+    else:
+       eqdskflag = False
+
+    if not eqdskflag: raise IOError('FATAL: EQDSK FILE IS NOT PROVIDED. EXIT!')
+
+    asisflag = False; interpflag = False
+    if 'boundary_type' in setParam:
+       if   setParam['boundary_type'] in [0,'asis']:   asisflag   = True
+       elif setParam['boundary_type'] in [1,'interp']: interpflag = True
+       else:                                          asisflag   = True
+
+    if   asisflag:
+         rbound = eqdskdata['rbound']
+         zbound = eqdskdata['zbound']
+    elif interpflag:
+       rbndtst = int(eqdskdata['RLEN']/(max(eqdskdata['rbound'])-abs(min(eqdskdata['rbound']))))
+       zbndtst = int(eqdskdata['ZLEN']/(max(eqdskdata['zbound'])+abs(min(eqdskdata['zbound']))))
+       if  rbndtst==1 and zbndtst==1:
+           rbound,zbound = magsurf_solvflines(eqdskdata=eqdskdata,psi=0.999,eps=1.0e-16)
+       else:
+           rbound=npy.zeros(2*len(eqdskdata['rbound'])-1)
+           zbound=npy.zeros(2*len(eqdskdata['zbound'])-1)
+           rbound[0] = eqdskdata['rbound'][0]
+           zbound[0] = eqdskdata['zbound'][0]
+           for i in range(1,len(eqdskdata['rbound'])):
+               rbound[i]  = eqdskdata['rbound'][i]
+               rbound[-i] = eqdskdata['rbound'][i]
+               zbound[i]  = eqdskdata['zbound'][i]
+               zbound[-i] =-eqdskdata['zbound'][i]
+
+    return rbound,zbound
+
+
 def read_chease(fpath,setParam={},**kwargs):
+    """
+    Reads "CHEASE" data file provided in the given path "fpath" based on a list of
+    controlling parameters in "setParam". The physical quantities can be interpolated
+    on a new grid provided in another file given in "kwargs".
+
+    - fpath -
+    If a path to a directory is provided in "fpath", all the files named as following:
+    chease_iterxxx.dat
+    chease_iterxxx.h5
+    will be read and its contents will be returned to the user in a dictionary format 
+    with its keys are the names of these files.
+
+    - setParam -
+    "setParam" input argument has a PYTHON dictionary structure with the following keys:
+    1. "nrhopsi":
+        Takes 0 or 1 if the grid type is of type "rhopsi" or "rhotor", respectively.
+    2. "Zeff":
+        Takes True if the global profile of Zeff is required, or False if the average 
+        value of the Zeff is required.
+    3. "norm":
+        Takes @code{.py} True @endcode if the returned physical quantities need to be Normalized in a
+        similar way to CHEASE code, and takes <B>False</B> if these quantities need to be
+        in SI units.
+
+    - kwargs -
+    In case the physical quantities in the CHEASE file need to be interpolated to a new
+    grid (either rhopsi or rhotor) provided in another file, the file that has the new
+    grid should be provided as "kwargs". The file that has the new grid should contain
+    the saftey factor profile (q) to facilitate the conversion between rhopsi and rhotor,
+    for example the EFIT (aka EQDSK) equilibirum file.
+
+    """
     if os.path.isfile(fpath) == False:
        errorFunc = traceback.extract_stack(limit=2)[-2][3]
        errorLine = traceback.extract_stack(limit=2)[-2][1]
@@ -1319,7 +1414,9 @@ def write_expeq(setParam={},**kwargs):
 
 
     if 'boundary' in setParam:
-         if   type(setParam['boundary'])==float:
+         if   type(setParam['boundary'])==int:
+              boundary = int(setParam['boundary'])
+         elif type(setParam['boundary'])==float:
               boundary = int(setParam['boundary'])
          elif type(setParam['boundary'])==str:
               boundary = setParam['boundary'].lower()
@@ -1379,11 +1476,6 @@ def write_expeq(setParam={},**kwargs):
          if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
          elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
          else:                      expeq['zgeom']  = 0.0
-         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
-         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
-         else:
-              expeq['aspect']  = (max(imported['rbound'])-min(imported['rbound']))
-              expeq['aspect'] /= (max(imported['rbound'])+min(imported['rbound']))
 
          if   'rbound' in imported and 'zbound' in imported:
               expeq['nRZmesh'] = npy.size(imported['rbound'])
@@ -1396,6 +1488,12 @@ def write_expeq(setParam={},**kwargs):
               expeq['rbound']  = rbound/expeq['R0EXP']
               expeq['zbound']  = zbound/expeq['R0EXP']
 
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:
+              expeq['aspect']  = (max(imported['rbound'])-min(imported['rbound']))
+              expeq['aspect'] /= (max(imported['rbound'])+min(imported['rbound']))
+
     elif geometry in [0,'chease'] and 'cheasedata' in locals():
          if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
          elif 'R0EXP'  in setParam: expeq['R0EXP']  = setParam['R0EXP']
@@ -1406,11 +1504,6 @@ def write_expeq(setParam={},**kwargs):
          if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
          elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
          else:                      expeq['zgeom']  = npy.mean(cheasedata['zmesh'])/expeq['R0EXP']
-         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
-         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
-         else:
-              expeq['aspect']  = (max(cheasedata['rbound'])-min(cheasedata['rbound']))
-              expeq['aspect'] /= (max(cheasedata['rbound'])+min(cheasedata['rbound']))
 
          if 'rbound' in imported and 'zbound' in imported:
             expeq['nRZmesh'] = npy.size(imported['rbound'])
@@ -1420,6 +1513,12 @@ def write_expeq(setParam={},**kwargs):
             expeq['nRZmesh'] = npy.size(cheasedata['rbound'])
             expeq['rbound']  = cheasedata['rbound']/expeq['R0EXP']
             expeq['zbound']  = cheasedata['zbound']/expeq['R0EXP']
+
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:
+              expeq['aspect']  = (max(cheasedata['rbound'])-min(cheasedata['rbound']))
+              expeq['aspect'] /= (max(cheasedata['rbound'])+min(cheasedata['rbound']))
 
     elif geometry in [2,'expeq'] and 'expeqdata' in locals():
          if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
@@ -1431,9 +1530,6 @@ def write_expeq(setParam={},**kwargs):
          if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
          elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
          else:                      expeq['zgeom']  = expeqdata['aspect']
-         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
-         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
-         else:                                        expeqdata['zgeom']
 
          if 'rbound' in imported and 'zbound' in imported:
             expeq['nRZmesh'] = npy.size(imported['rbound'])
@@ -1443,6 +1539,10 @@ def write_expeq(setParam={},**kwargs):
             expeq['nRZmesh'] = npy.size(expeqdata['rbound'])
             expeq['rbound']  = expeqdata['rbound'][:]
             expeq['zbound']  = expeqdata['zbound'][:]
+
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:                                        expeqdata['zgeom']
 
     elif geometry in [1,'eqdsk'] or 'eqdskdata' in locals():
          if   'R0EXP'  in imported: expeq['R0EXP']  = imported['R0EXP']
@@ -1454,11 +1554,6 @@ def write_expeq(setParam={},**kwargs):
          if   'ZMAX'   in imported: expeq['zgeom']  = imported['ZMAX']
          elif 'ZMAX'   in setParam: expeq['zgeom']  = setParam['ZMAX']
          else:                      expeq['zgeom']  = eqdskdata['ZMAX']/expeq['R0EXP']
-         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
-         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
-         else:
-              expeq['aspect']  = (max(rbound)-min(rbound))
-              expeq['aspect'] /= (max(rbound)+min(rbound))
 
          if 'rbound' in imported and 'zbound' in imported:
             expeq['nRZmesh'] = npy.size(imported['rbound'])
@@ -1470,6 +1565,12 @@ def write_expeq(setParam={},**kwargs):
             expeq['nRZmesh'] = npy.size(rbound)
             expeq['rbound']  = rbound/expeq['R0EXP']
             expeq['zbound']  = zbound/expeq['R0EXP']
+
+         if   'aspect' in imported: expeq['aspect'] = imported['aspect']
+         elif 'aspect' in setParam: expeq['aspect'] = setParam['aspect']
+         else:
+              expeq['aspect']  = (max(rbound)-min(rbound))
+              expeq['aspect'] /= (max(rbound)+min(rbound))
 
     if   nrhotype[0] in [0,'rhopsi','rhopsin']:
          rhopsiflag = True
